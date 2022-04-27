@@ -1,0 +1,190 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace topcekmeoyunu
+{
+    internal class Oyun
+    {
+        public void oyun()
+        {
+            Torba cekilen = new Torba();
+            cekilen = cekilen.topUret();
+            cekilen = cekilen.topSirala(cekilen);
+            cekilen = cekilen.topKaristir(cekilen);
+            do
+            {
+                cekilen = cekilen.topCek(cekilen);
+            } while (!cekilen.farkliToplar(cekilen));
+
+            Console.WriteLine("1. Oyuncu adi:");
+            String o1 = Console.ReadLine();
+            Console.WriteLine("2. Oyuncu adi:");
+            String o2 = Console.ReadLine();
+
+            Torba[] secim = new Torba[2];
+            secim[0] = new Torba();
+            secim[1] = new Torba();
+            secim[0].toplar = new Top[5];
+            secim[1].toplar = new Top[5];
+
+            for (int j = 0; j < 2; j++)
+                do
+                {
+                    Console.WriteLine($"{j + 1}. oyuncunun 5 tercihi:");
+                    for (int i = 0; i < 5; i++)
+                    {
+                        Console.WriteLine($"{i + 1}. tercih:");
+                        Top top = new Top();
+                        top.sayi = Convert.ToInt32(Console.ReadLine());
+                        secim[j].toplar[i] = top;
+                    }
+                } while (!new Torba().farkliToplar(secim[j]));
+
+            
+            secim[0] = secim[0].topSirala(secim[0]);
+            secim[1] = secim[1].topSirala(secim[1]);
+            for (int i = 0; i < 2; i++)
+            {
+                Console.WriteLine($"{i + 1}. oyuncunun seçimleri");
+                for (int j = 0; j < 5; j++)
+                    Console.Write($"{secim[i].toplar[j].sayi} ");
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("seçilen toplar");
+            for (int j = 0; j < 5; j++)
+                Console.Write($"{cekilen.toplar[j].sayi} ");
+            Console.WriteLine();
+
+            Torba[] eslesen  = new Torba[2];
+            for(int i = 0; i < 2; i++)
+                eslesen[i] = secim[i].eslesen(secim[i], cekilen);
+
+            for (int j = 0; j < 2; j++) { 
+                Console.WriteLine($"{j}. oyuncunun eşleşen sayıları");
+                for (int i = 0; i < eslesen[j].toplar.Length; i++)
+                    Console.Write($"{eslesen[j].toplar[i].sayi} ");
+                Console.WriteLine();
+            }
+            if (eslesen[0].toplar.Length > eslesen[1].toplar.Length) {
+                Console.WriteLine($"{o1} oyuncusu {eslesen[0].toplar.Length - eslesen[1].toplar.Length} kadar fazla alarak kazanmıştır.");
+            }
+            else if (eslesen[0].toplar.Length > eslesen[1].toplar.Length)
+            {
+                Console.WriteLine($"{o2} oyuncusu {eslesen[1].toplar.Length - eslesen[0].toplar.Length} kadar fazla alarak kazanmıştır.");
+            }
+            else
+                Console.WriteLine("Berabere kalınmıştır.");
+        }
+    }
+}
+
+internal class Program
+    {
+        static void Main(string[] args)
+        {
+            Oyun oyun = new Oyun();
+            oyun.oyun();
+
+        }
+    }
+}
+
+namespace topcekmeoyunu
+{
+    internal class Top
+    {
+        public int sayi;
+
+    }
+}
+
+namespace topcekmeoyunu
+{
+    internal class Torba
+    {
+        public Top[] toplar;
+        
+        public Torba topUret()
+        {
+            Torba torba = new Torba();
+            torba.toplar = new Top[50];
+            for (int i = 0; i < 10; i++)
+                for (int j = 0; j < 5; j++)
+                {
+                    torba.toplar[i * 5 + j] = new Top();
+                    torba.toplar[i * 5 + j].sayi = i;
+                }
+            return torba;
+        }
+
+        public Torba topSirala(Torba torba)
+        {
+            for(int i = 0; i < torba.toplar.Length; i++)
+                for(int j = i + 1; j < torba.toplar.Length; j++)
+                    if(torba.toplar[i].sayi > torba.toplar[j].sayi)
+                    {
+                        Top top = torba.toplar[i];
+                        torba.toplar[i] = torba.toplar[j];
+                        torba.toplar[j] = top;
+                    }
+            return torba;
+        }
+
+        public Torba topKaristir(Torba torba)
+        {
+            Random rand = new Random();
+            for(int i = 0; i < 50; i++)
+            {
+                int indis = rand.Next(i, 50);
+                Top top = torba.toplar[i];
+                torba.toplar[i] = torba.toplar[indis];
+                torba.toplar[indis] = top;
+            }
+            return torba;
+        }
+
+        public Torba topCek(Torba torba)
+        {
+            Torba cekilen = new Torba();
+            cekilen.toplar = new Top[5];
+            for(int i = 0; i < 5; i++)
+                cekilen.toplar[i] = torba.toplar[i];
+            return cekilen;
+        }
+
+        public bool farkliToplar(Torba torba)
+        {
+            torba = topSirala(torba);
+            for (int i = 0; i < 4; i++)
+                if (torba.toplar[i].sayi == torba.toplar[i + 1].sayi)
+                    return false;
+            return true;
+        }
+
+        public Torba eslesen(Torba secim, Torba cekilen)
+        {
+            Torba eslesen = new Torba();
+            int[] gecici = new int[5];
+            int n = 0;
+            for(int i = 0; i < 5; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                    if (secim.toplar[i].sayi == cekilen.toplar[j].sayi)
+                        gecici[n++] = secim.toplar[i].sayi;
+            }
+            eslesen.toplar = new Top[n];
+            for(int i = 0; i < n; i++)
+            {
+                eslesen.toplar[i] = new Top();
+                eslesen.toplar[i].sayi = gecici[i];
+            }
+            return eslesen;
+        }
+
+    }
+}
+    
